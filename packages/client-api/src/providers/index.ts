@@ -1,6 +1,7 @@
 export * from './battery/battery-provider-types';
 export * from './cpu/cpu-provider-types';
 export * from './date/date-provider-types';
+export * from './focused-window/focused-window-provider-types';
 export * from './glazewm/glazewm-provider-types';
 export * from './host/host-provider-types';
 export * from './ip/ip-provider-types';

@@ -18,6 +18,11 @@ import type {
   DateProviderConfig,
   DateProvider,
 } from './date/date-provider-types';
+import { createFocusedWindowProvider } from './focused-window/create-focused-window-provider';
+import type {
+  FocusedWindowProviderConfig,
+  FocusedWindowProvider,
+} from './focused-window/focused-window-provider-types';
 import { createGlazeWmProvider } from './glazewm/create-glazewm-provider';
 import type {
   GlazeWmProviderConfig,
@@ -71,6 +76,7 @@ export interface ProviderConfigMap {
   battery: BatteryProviderConfig;
   cpu: CpuProviderConfig;
   date: DateProviderConfig;
+  focusedWindow: FocusedWindowProviderConfig;
   glazewm: GlazeWmProviderConfig;
   host: HostProviderConfig;
   ip: IpProviderConfig;
@@ -88,6 +94,7 @@ export interface ProviderMap {
   battery: BatteryProvider;
   cpu: CpuProvider;
   date: DateProvider;
+  focusedWindow: FocusedWindowProvider;
   glazewm: GlazeWmProvider;
   host: HostProvider;
   ip: IpProvider;
@@ -129,6 +136,8 @@ export function createProvider<T extends ProviderConfig>(
       return createCpuProvider(config) as any;
     case 'date':
       return createDateProvider(config) as any;
+    case 'focusedWindow':
+      return createFocusedWindowProvider(config) as any;
     case 'glazewm':
       return createGlazeWmProvider(config) as any;
     case 'host':

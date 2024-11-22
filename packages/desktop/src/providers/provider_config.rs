@@ -2,8 +2,9 @@ use serde::Deserialize;
 
 #[cfg(windows)]
 use super::{
-  audio::AudioProviderConfig, keyboard::KeyboardProviderConfig,
-  komorebi::KomorebiProviderConfig, media::MediaProviderConfig,
+  audio::AudioProviderConfig, focused_window::FocusedWindowProviderConfig,
+  keyboard::KeyboardProviderConfig, komorebi::KomorebiProviderConfig,
+  media::MediaProviderConfig,
 };
 use super::{
   battery::BatteryProviderConfig, cpu::CpuProviderConfig,
@@ -13,12 +14,14 @@ use super::{
 };
 
 #[derive(Deserialize, Debug)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum ProviderConfig {
   #[cfg(windows)]
   Audio(AudioProviderConfig),
   Battery(BatteryProviderConfig),
   Cpu(CpuProviderConfig),
+  #[cfg(windows)]
+  FocusedWindow(FocusedWindowProviderConfig),
   Host(HostProviderConfig),
   Ip(IpProviderConfig),
   #[cfg(windows)]

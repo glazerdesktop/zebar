@@ -11,8 +11,9 @@ use tracing::info;
 
 #[cfg(windows)]
 use super::{
-  audio::AudioProvider, keyboard::KeyboardProvider,
-  komorebi::KomorebiProvider, media::MediaProvider,
+  audio::AudioProvider, focused_window::FocusedWindowProvider,
+  keyboard::KeyboardProvider, komorebi::KomorebiProvider,
+  media::MediaProvider,
 };
 use super::{
   battery::BatteryProvider, cpu::CpuProvider, disk::DiskProvider,
@@ -226,6 +227,10 @@ impl ProviderManager {
       }
       ProviderConfig::Cpu(config) => {
         Box::new(CpuProvider::new(config, common))
+      }
+      #[cfg(windows)]
+      ProviderConfig::FocusedWindow(config) => {
+        Box::new(FocusedWindowProvider::new(config, common))
       }
       ProviderConfig::Host(config) => {
         Box::new(HostProvider::new(config, common))

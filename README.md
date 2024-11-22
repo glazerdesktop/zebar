@@ -63,6 +63,7 @@ Through the `zebar` NPM package, Zebar exposes various system information via re
 - [cpu](#CPU)
 - [date](#Date)
 - [disk](#Disk)
+- [focusedWindow](#focused-window)
 - [glazewm](#GlazeWM)
 - [host](#Host)
 - [ip](#IP)
@@ -194,6 +195,23 @@ No config options.
 | `siUnit`   | Unit of the converted bytes in according to the SI standard. KB, MB, ...    | `string`    |
 | `iecValue` | Bytes converted in according to the IEC standard. 1024 bytes in a kibibyte. | `number`    |
 | `iecUnit`  | Unit of the converted bytes in according to the IEC standard. KiB, MiB, ... | `string`    |
+
+
+
+## Focused Window 
+
+#### Config
+
+No config options.
+
+#### Outputs
+
+| Variable              | Description | Return type   | Supported OS                                                                                                                      |
+| --------------------- | ----------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `title` | Title of the current focused window. | `string` | <img src="https://github.com/glzr-io/zebar/assets/34844898/568e90c8-cd32-49a5-a17f-ab233d41f1aa" alt="microsoft icon" width="24"> |
+| `icon` | Icon of the current focused window, encoded as base64 | `string` | <img src="https://github.com/glzr-io/zebar/assets/34844898/568e90c8-cd32-49a5-a17f-ab233d41f1aa" alt="microsoft icon" width="24"> |
+
+
 
 ### GlazeWM
 
