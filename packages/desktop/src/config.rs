@@ -91,6 +91,7 @@ pub struct WidgetConfig {
   pub transparent: bool,
 
   /// Privileges for the widget.
+  #[serde(default)]
   pub privileges: WidgetPrivileges,
 
   /// Where to place the widget. Add alias for `defaultPlacements` for
