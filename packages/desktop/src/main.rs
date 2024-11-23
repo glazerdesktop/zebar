@@ -8,7 +8,6 @@ use std::{env, sync::Arc};
 use clap::Parser;
 use cli::MonitorType;
 use config::{MonitorSelection, WidgetPlacement};
-use privilege_store::PrivilegeStore;
 use providers::ProviderEmission;
 use tauri::{
   async_runtime::block_on, AppHandle, Emitter, Manager, RunEvent,
@@ -35,7 +34,6 @@ mod commands;
 mod common;
 mod config;
 mod monitor_state;
-mod privilege_store;
 mod providers;
 mod sys_tray;
 mod widget_factory;
@@ -151,16 +149,11 @@ async fn start_app(app: &mut tauri::App, cli: Cli) -> anyhow::Result<()> {
   let monitor_state = Arc::new(MonitorState::new(app.handle()));
   app.manage(monitor_state.clone());
 
-  // Initialize `PrivilegeStore` in Tauri state.
-  let privilege_store = Arc::new(PrivilegeStore::new(app.handle())?);
-  app.manage(privilege_store.clone());
-
   // Initialize `WidgetFactory` in Tauri state.
   let widget_factory = Arc::new(WidgetFactory::new(
     app.handle(),
     config.clone(),
     monitor_state.clone(),
-    privilege_store.clone(),
   ));
   app.manage(widget_factory.clone());
 
