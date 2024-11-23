@@ -212,10 +212,13 @@ impl WidgetFactory {
     }
 
     // Check if we have the necessary privileges for this widget.
-    self
+    if !(self
       .privilege_store
       .validate_or_prompt(&config_path, &widget_config.privileges)
-      .await?;
+      .await?)
+    {
+      return Ok(());
+    }
 
     // Extract placement from widget preset (if applicable).
     let placement = match open_options {

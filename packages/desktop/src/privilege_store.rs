@@ -42,11 +42,18 @@ impl PrivilegeStore {
     widget_path: &PathBuf,
     privileges: &WidgetPrivileges,
   ) -> anyhow::Result<bool> {
-    let found_privileges = self.fetch_privileges(widget_path).await?;
+    let matches = self
+      .fetch_privileges(widget_path)
+      .await
+      .ok()
+      .map(|found_privileges| {
+        found_privileges.as_ref() == Some(privileges)
+      })
+      .unwrap_or(false);
 
-    match found_privileges {
-      Some(found_privileges) => Ok(found_privileges == *privileges),
-      None => self.prompt_for_privileges(widget_path, privileges),
+    match matches {
+      true => Ok(true),
+      false => self.prompt_for_privileges(widget_path, privileges),
     }
   }
 
@@ -89,9 +96,16 @@ impl PrivilegeStore {
       .app_handle
       .dialog()
       .message(format!(
-        "Please grant the necessary privileges for this widget: {} {:?}",
+        "      Permission Request      \n\n\
+        This widget needs to call external commands:\n\n\
+        Location:\n    {}\n\n\
+        Details:\n\
+        ○  Command:  {}\n\
+        ○  Pattern:  {}\n\n\
+        Is this okay?",
         widget_path.display(),
-        privileges
+        privileges.shell[0].program,
+        privileges.shell[0].args_regex
       ))
       .title("Privileges")
       .buttons(MessageDialogButtons::OkCancelCustom(
