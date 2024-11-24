@@ -231,6 +231,9 @@ impl WidgetFactory {
       // Use running widget count as a unique label for the Tauri window.
       let widget_id = format!("widget-{}", new_count);
 
+      // Add additional capabilities (e.g. shell access) for the widget.
+      self.add_widget_capabilities(&widget_id)?;
+
       let html_path = config_path
         .parent()
         .map(|dir| dir.join(&widget_config.html_path))
@@ -484,6 +487,41 @@ impl WidgetFactory {
         )
         .await?;
     }
+
+    Ok(())
+  }
+
+  /// Adds capabilities for a given widget ID.
+  fn add_widget_capabilities(
+    &self,
+    widget_id: &str,
+  ) -> anyhow::Result<()> {
+    self.app_handle.add_capability(format!(
+      r#"
+        {
+          "identifier": "{}",
+          "windows": ["{}"],
+          "remote": {
+            "urls": ["http://asset.localhost", "asset://localhost"]
+          },
+          "permissions": [
+            "identifier": "shell:allow-execute",
+            "allow": [
+              {
+                "name": "exec-sh",
+                "cmd": "sh",
+                "args": [
+                  {
+                    "validator": "\\S+"
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      "#,
+      widget_id
+    ));
 
     Ok(())
   }
