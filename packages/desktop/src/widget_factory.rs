@@ -10,9 +10,11 @@ use std::{
 
 use anyhow::Context;
 use serde::Serialize;
+use serde_json::json;
 use tauri::{
-  AppHandle, Manager, PhysicalPosition, PhysicalSize, WebviewUrl,
-  WebviewWindowBuilder, WindowEvent,
+  utils::acl::capability::Capability, AppHandle, Manager,
+  PhysicalPosition, PhysicalSize, WebviewUrl, WebviewWindowBuilder,
+  WindowEvent,
 };
 use tokio::{
   sync::{broadcast, Mutex},
@@ -496,32 +498,28 @@ impl WidgetFactory {
     &self,
     widget_id: &str,
   ) -> anyhow::Result<()> {
-    self.app_handle.add_capability(format!(
-      r#"
-        {
-          "identifier": "{}",
-          "windows": ["{}"],
-          "remote": {
-            "urls": ["http://asset.localhost", "asset://localhost"]
-          },
-          "permissions": [
-            "identifier": "shell:allow-execute",
-            "allow": [
-              {
-                "name": "exec-sh",
-                "cmd": "sh",
-                "args": [
-                  {
-                    "validator": "\\S+"
-                  }
-                ]
-              }
-            ]
-          ]
-        }
-      "#,
-      widget_id
-    ));
+    let capability = json!({
+      "identifier": widget_id,
+      "windows": [widget_id],
+      "remote": {
+        "urls": ["http://asset.localhost", "asset://localhost"]
+      },
+      "permissions": [{
+        "identifier": "shell:allow-execute",
+        "allow": [{
+          "name": "exec-sh",
+          "cmd": "sh",
+          "args": [{
+              "validator": "\\S+"
+          }]
+        }]
+      }]
+    });
+
+    // let capability = Capability::from_json(capability)?;
+    // let capability = Capability::from_json(capability)?;
+    // Capability
+    self.app_handle.add_capability(capability.to_string())?;
 
     Ok(())
   }
