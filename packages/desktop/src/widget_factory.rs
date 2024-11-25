@@ -12,9 +12,9 @@ use anyhow::Context;
 use serde::Serialize;
 use serde_json::json;
 use tauri::{
-  utils::acl::capability::Capability, AppHandle, Manager,
-  PhysicalPosition, PhysicalSize, WebviewUrl, WebviewWindowBuilder,
-  WindowEvent,
+  ipc::CapabilityBuilder, utils::acl::capability::Capability, AppHandle,
+  Manager, PhysicalPosition, PhysicalSize, WebviewUrl,
+  WebviewWindowBuilder, WindowEvent,
 };
 use tokio::{
   sync::{broadcast, Mutex},
@@ -30,7 +30,7 @@ use crate::{
   common::PathExt,
   config::{
     AnchorPoint, Config, DockConfig, DockEdge, WidgetConfig,
-    WidgetPlacement,
+    WidgetPlacement, WidgetPrivileges,
   },
   monitor_state::{Monitor, MonitorState},
 };
@@ -234,7 +234,8 @@ impl WidgetFactory {
       let widget_id = format!("widget-{}", new_count);
 
       // Add additional capabilities (e.g. shell access) for the widget.
-      self.add_widget_capabilities(&widget_id)?;
+      self
+        .add_widget_capabilities(&widget_id, &widget_config.privileges)?;
 
       let html_path = config_path
         .parent()
@@ -493,33 +494,47 @@ impl WidgetFactory {
     Ok(())
   }
 
-  /// Adds capabilities for a given widget ID.
+  /// Adds Tauri capabilities for a given widget ID (e.g. shell access).
   fn add_widget_capabilities(
     &self,
     widget_id: &str,
+    privileges: &WidgetPrivileges,
   ) -> anyhow::Result<()> {
-    let capability = json!({
-      "identifier": widget_id,
-      "windows": [widget_id],
-      "remote": {
-        "urls": ["http://asset.localhost", "asset://localhost"]
-      },
-      "permissions": [{
-        "identifier": "shell:allow-execute",
-        "allow": [{
-          "name": "exec-sh",
-          "cmd": "sh",
-          "args": [{
-              "validator": "\\S+"
-          }]
-        }]
-      }]
-    });
+    #[derive(Serialize)]
+    struct ShellAllowedCmd {
+      name: String,
+      cmd: String,
+      args: Vec<ShellAllowedArg>,
+      sidecar: bool,
+    }
 
-    // let capability = Capability::from_json(capability)?;
-    // let capability = Capability::from_json(capability)?;
-    // Capability
-    self.app_handle.add_capability(capability.to_string())?;
+    #[derive(Serialize)]
+    struct ShellAllowedArg {
+      validator: String,
+    }
+
+    let capability = CapabilityBuilder::new(widget_id)
+      .window(widget_id)
+      .remote("http://asset.localhost".to_string())
+      .remote("asset://localhost".to_string())
+      .permission_scoped(
+        "shell:allow-execute",
+        privileges
+          .shell
+          .iter()
+          .map(|cmd| ShellAllowedCmd {
+            name: cmd.program.clone(),
+            cmd: cmd.program.clone(),
+            args: vec![ShellAllowedArg {
+              validator: cmd.args_regex.clone(),
+            }],
+            sidecar: false,
+          })
+          .collect(),
+        vec![],
+      );
+
+    self.app_handle.add_capability(capability)?;
 
     Ok(())
   }
