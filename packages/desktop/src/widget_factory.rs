@@ -504,6 +504,22 @@ impl WidgetFactory {
       .remote("http://asset.localhost".to_string())
       .remote("asset://localhost".to_string())
       .permission_scoped(
+        "shell:allow-spawn",
+        privileges
+          .shell
+          .iter()
+          .map(|shell| {
+            json!({
+              "name": shell.program,
+              "cmd": shell.program,
+              "args": [{ "validator": shell.args_regex }],
+              "sidecar": false
+            })
+          })
+          .collect::<Vec<serde_json::Value>>(),
+        vec![],
+      )
+      .permission_scoped(
         "shell:allow-execute",
         privileges
           .shell
