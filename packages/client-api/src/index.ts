@@ -3,7 +3,6 @@ export {
   currentWidget,
   currentWindow,
   shell,
-  ShellCommandImpl,
   startPreset,
   type Widget,
   type Window,

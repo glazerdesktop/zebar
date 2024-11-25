@@ -3,103 +3,29 @@ import { Command } from '@tauri-apps/plugin-shell';
 export interface ShellCommand {
   onStdout: (callback: (stdout: string) => void) => this;
   onStderr: (callback: (stderr: string) => void) => this;
-  execute: () => Promise<ShellResult>;
+  onExit: (callback: (status: ExitStatus) => void) => this;
+  execute: () => Promise<ExitStatus>;
   start: () => Promise<ShellProcess>;
 }
 
-export interface ShellResult {
+export interface ExitStatus {
   exitCode: number;
-  stdout: string[];
-  stderr: string[];
+  stdout: readonly string[];
+  stderr: readonly string[];
 }
 
 export interface ShellProcess {
-  processId: number;
-  stdout: string[];
-  stderr: string[];
+  readonly processId: number;
+  readonly stdout: string[];
+  readonly stderr: string[];
   clearStdout: () => void;
   clearStderr: () => void;
 }
 
-export class ShellCommandImpl {
-  private readonly command: Command<string>;
-  private readonly stdoutLines: string[] = [];
-  private readonly stderrLines: string[] = [];
-  private stdoutCallback?: (stdout: string) => void;
-  private stderrCallback?: (stderr: string) => void;
-
-  constructor(
-    program: string,
-    args?: string | string[],
-    options?: ShellCommandOptions,
-  ) {
-    // Convert encoding option to Tauri's format
-    const tauriOptions = {
-      ...options,
-      env: options?.env ?? undefined,
-      encoding: options?.encoding === 'raw' ? 'raw' : undefined,
-    };
-
-    this.command = Command.create(program, args, tauriOptions);
-
-    // Set up stdout listener
-    this.command.stdout.on('data', (line: string) => {
-      this.stdoutLines.push(line);
-      if (this.stdoutCallback) {
-        this.stdoutCallback(line);
-      }
-    });
-
-    // Set up stderr listener
-    this.command.stderr.on('data', (line: string) => {
-      this.stderrLines.push(line);
-      if (this.stderrCallback) {
-        this.stderrCallback(line);
-      }
-    });
-  }
-
-  onStdout(callback: (stdout: string) => void): this {
-    this.stdoutCallback = callback;
-    return this;
-  }
-
-  onStderr(callback: (stderr: string) => void): this {
-    this.stderrCallback = callback;
-    return this;
-  }
-
-  async execute(): Promise<ShellResult> {
-    const result = await this.command.execute();
-    return {
-      exitCode: result.code ?? 0,
-      stdout: this.stdoutLines,
-      stderr: this.stderrLines,
-    };
-  }
-
-  async start(): Promise<ShellProcess> {
-    const child = await this.command.spawn();
-    const stdoutLines = this.stdoutLines;
-    const stderrLines = this.stderrLines;
-
-    return {
-      processId: child.pid,
-      get stdout() {
-        return [...stdoutLines];
-      },
-      get stderr() {
-        return [...stderrLines];
-      },
-      clearStdout: () => {
-        this.stdoutLines.length = 0;
-      },
-      clearStderr: () => {
-        this.stderrLines.length = 0;
-      },
-    };
-  }
-}
+const process = await shell('long-running-process', [], {
+  onStdout: line => console.log('stdout:', line),
+  onClose: result => console.log('Process finished:', result),
+}).start();
 
 export interface ShellCommandOptions {
   /**
@@ -129,7 +55,82 @@ export function shell(
   args?: string | string[],
   options?: ShellCommandOptions,
 ): ShellCommand {
-  // ) {
-  // const command = Command.create(program, args, options as any);
-  return new ShellCommandImpl(program, args, options);
+  const stdoutLines: string[] = [];
+  const stderrLines: string[] = [];
+  let stdoutCallback: ((stdout: string) => void) | undefined;
+  let stderrCallback: ((stderr: string) => void) | undefined;
+
+  // Convert encoding option to Tauri's format.
+  const tauriOptions = {
+    ...options,
+    env: options?.env ?? undefined,
+    encoding: options?.encoding === 'raw' ? 'raw' : undefined,
+  };
+
+  const command = Command.create(program, args, tauriOptions);
+
+  // Set up stdout listener
+  command.stdout.on('data', (line: string) => {
+    stdoutLines.push(line);
+    if (stdoutCallback) {
+      stdoutCallback(line);
+    }
+  });
+
+  // Set up stderr listener
+  command.stderr.on('data', (line: string) => {
+    stderrLines.push(line);
+    if (stderrCallback) {
+      stderrCallback(line);
+    }
+  });
+
+  const shellCommand: ShellCommand = {
+    onStdout(callback: (stdout: string) => void) {
+      stdoutCallback = callback;
+      return shellCommand;
+    },
+
+    onStderr(callback: (stderr: string) => void) {
+      stderrCallback = callback;
+      return shellCommand;
+    },
+
+    async execute(): Promise<ExitStatus> {
+      const child = await command.spawn();
+
+      return new Promise((resolve, reject) => {
+        command.on('error', reject);
+        command.on('close', ({ code }) => {
+          resolve({
+            exitCode: code ?? 0,
+            stdout: [...stdoutLines],
+            stderr: [...stderrLines],
+          });
+        });
+      });
+    },
+
+    async start(): Promise<ShellProcess> {
+      const child = await command.spawn();
+
+      return {
+        processId: child.pid,
+        get stdout() {
+          return [...stdoutLines];
+        },
+        get stderr() {
+          return [...stderrLines];
+        },
+        clearStdout: () => {
+          stdoutLines.length = 0;
+        },
+        clearStderr: () => {
+          stderrLines.length = 0;
+        },
+      };
+    },
+  };
+
+  return shellCommand;
 }
