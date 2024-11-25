@@ -30,6 +30,8 @@ export interface ShellProcess {
   onExit: (
     callback: (status: Omit<ShellExitStatus, 'stdout' | 'stderr'>) => void,
   ) => void;
+  kill: () => void;
+  write: (data: string | Uint8Array) => void;
 }
 
 export interface ShellExitStatus {
@@ -38,6 +40,14 @@ export interface ShellExitStatus {
   stderr: string;
 }
 
+/**
+ * Executes a shell command and waits for completion
+ *
+ * @param {string} command - Path to program executable, or program name
+ * (if in $PATH).
+ * @param {string | string[]} args - Arguments to pass to the program.
+ * @param {Object} options - Spawn options (optional).
+ */
 export async function shellExec(
   program: string,
   args?: string | string[],
@@ -55,8 +65,9 @@ export async function shellExec(
 /**
  * Starts a shell command without waiting for completion.
  *
- * @param {string} command - The command to execute.
- * @param {string | string[]} args - Array of command arguments.
+ * @param {string} command - Path to program executable, or program name
+ * (if in $PATH).
+ * @param {string | string[]} args - Arguments to pass to the program.
  * @param {Object} options - Spawn options (optional).
  */
 export async function shellSpawn(
@@ -69,33 +80,29 @@ export async function shellSpawn(
 
   return {
     processId: process.pid,
-    onStdout: callback =>
-      command.stdout.on('data', data => callback(data.toString())),
-    onStderr: callback =>
-      command.stderr.on('data', data => callback(data.toString())),
+    onStdout: callback => command.stdout.on('data', callback),
+    onStderr: callback => command.stderr.on('data', callback),
     onExit: callback =>
       command.on('close', status =>
-        callback({
-          exitCode: status.code ?? 0,
-        }),
+        callback({ exitCode: status.code ?? 0 }),
       ),
+    kill: () => process.kill(),
+    write: data => process.write(data),
   };
 }
 
 /**
- * Creates a Tauri command via its shell plugin.
+ * Creates a shell command via Tauri's shell plugin.
  */
 function createCommand(
   program: string,
   args?: string | string[],
   options?: ShellCommandOptions,
 ): Command<Uint8Array | string> {
-  // Convert encoding option to Tauri's format.
-  const tauriOptions = {
+  return Command.create(program, args, {
     ...options,
+    // Tauri's `SpawnOptions` type is not explicit about allowing `env` to
+    // be `null`.
     env: options?.env ?? undefined,
-    encoding: options?.encoding === 'raw' ? 'raw' : undefined,
-  };
-
-  return Command.create(program, args, tauriOptions);
+  });
 }
