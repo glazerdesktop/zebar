@@ -2,7 +2,7 @@ export * from './config';
 export {
   currentWidget,
   currentWindow,
-  shellExec,
+  shell,
   startPreset,
   type Widget,
   type Window,
