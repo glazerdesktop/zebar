@@ -1,4 +1,5 @@
 import type { WidgetPreset } from './widget-preset';
+import type { WidgetPrivileges } from './widget-privileges';
 
 export type WidgetConfig = {
   htmlPath: string;
@@ -7,5 +8,6 @@ export type WidgetConfig = {
   focused: boolean;
   resizable: boolean;
   transparent: boolean;
+  privileges: WidgetPrivileges;
   presets: WidgetPreset[];
 };
