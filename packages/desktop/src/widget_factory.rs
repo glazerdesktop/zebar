@@ -506,7 +506,7 @@ impl WidgetFactory {
       .permission_scoped(
         "shell:allow-spawn",
         privileges
-          .shell
+          .shell_commands
           .iter()
           .map(|shell| {
             json!({
@@ -522,7 +522,7 @@ impl WidgetFactory {
       .permission_scoped(
         "shell:allow-execute",
         privileges
-          .shell
+          .shell_commands
           .iter()
           .map(|shell| {
             json!({

@@ -175,7 +175,7 @@ pub enum MonitorSelection {
 #[serde(rename_all = "camelCase")]
 pub struct WidgetPrivileges {
   /// Shell commands that the widget is allowed to run.
-  pub shell: Vec<ShellPrivilege>,
+  pub shell_commands: Vec<ShellPrivilege>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Default)]
