@@ -6,6 +6,38 @@
   "focused": false,
   "resizable": false,
   "transparent": false,
+  "privileges": {
+    "shellCommands": [
+      {
+        "program": "echo",
+        "argsRegex": ".*"
+      },
+      {
+        "program": "chrome",
+        "argsRegex": ".*"
+      },
+      {
+        "program": "git",
+        "argsRegex": ".*"
+      },
+      {
+        "program": "cmd",
+        "argsRegex": ".*"
+      },
+      {
+        "program": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+        "argsRegex": ".*"
+      },
+      {
+        "program": "powershell",
+        "argsRegex": ".*"
+      },
+      {
+        "program": "powershellaa",
+        "argsRegex": ".*"
+      }
+    ]
+  },
   "presets": [
     {
       "name": "default",
@@ -16,6 +48,11 @@
       "height": "40px",
       "monitorSelection": {
         "type": "all"
+      },
+      "dockToEdge": {
+        "enabled": false,
+        "edge": null,
+        "windowMargin": "0px"
       }
     }
   ]

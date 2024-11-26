@@ -6,6 +6,9 @@
   "focused": false,
   "resizable": false,
   "transparent": false,
+  "privileges": {
+    "shellCommands": []
+  },
   "presets": [
     {
       "name": "default",
@@ -16,6 +19,11 @@
       "height": "40px",
       "monitorSelection": {
         "type": "all"
+      },
+      "dockToEdge": {
+        "enabled": false,
+        "edge": null,
+        "windowMargin": "0px"
       }
     }
   ]
