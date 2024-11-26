@@ -50,6 +50,27 @@ export function WidgetConfigForm(props: WidgetConfigFormProps) {
     ),
   );
 
+  function addNewShellCommand() {
+    // 'privileges' key might not already exist for configs prior to
+    // v2.4.0.
+    configForm.setFieldValue('privileges', privileges => ({
+      ...privileges,
+      shellCommands: [
+        ...privileges.shellCommands,
+        {
+          program: '',
+          argsRegex: '',
+        },
+      ],
+    }));
+  }
+
+  function deleteShellCommand(targetIndex: number) {
+    configForm.setFieldValue('privileges.shellCommands', commands =>
+      commands.filter((_, index) => index !== targetIndex),
+    );
+  }
+
   function addNewPreset() {
     configForm.setFieldValue('presets', presets => [
       ...presets,
@@ -182,6 +203,68 @@ export function WidgetConfigForm(props: WidgetConfigFormProps) {
               />
             )}
           </Field>
+
+          <CardContent class="space-y-4">
+            {configForm.value.privileges.shellCommands.map((_, index) => (
+              <div class="border p-4 rounded-md space-y-2">
+                <div class="flex justify-between items-start">
+                  <div class="flex-1 space-y-2">
+                    <Field
+                      of={configForm}
+                      path={`privileges.shellCommands.${index}.program`}
+                    >
+                      {inputProps => (
+                        <TextField
+                          id={`program-${index}`}
+                          label="Program"
+                          placeholder="Program name or full path"
+                          description="Enter the program name (if in PATH) or the full path to the program"
+                          {...inputProps()}
+                        />
+                      )}
+                    </Field>
+
+                    <Field
+                      of={configForm}
+                      path={`privileges.shellCommands.${index}.argsRegex`}
+                    >
+                      {inputProps => (
+                        <TextField
+                          id={`args-regex-${index}`}
+                          label="Arguments regex"
+                          placeholder="Regular expression for allowed arguments"
+                          description="Regular expression pattern that matches allowed argument combinations"
+                          {...inputProps()}
+                        />
+                      )}
+                    </Field>
+                  </div>
+
+                  <Tooltip openDelay={0} closeDelay={0}>
+                    <TooltipTrigger
+                      as={(props: any) => (
+                        <Button
+                          {...props}
+                          variant="secondary"
+                          size="icon"
+                          onClick={() => deleteShellCommand(index)}
+                        >
+                          <IconTrash class="size-4" />
+                        </Button>
+                      )}
+                    />
+                    <TooltipContent>
+                      Delete shell command privilege
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            ))}
+
+            <Button onClick={addNewShellCommand} class="w-full">
+              Add shell command privilege +
+            </Button>
+          </CardContent>
         </CardContent>
       </Card>
 
