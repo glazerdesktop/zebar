@@ -23,10 +23,10 @@ export interface ShellCommandOptions {
   encoding?: 'text' | 'raw';
 }
 
-export interface ShellProcess {
+export interface ShellProcess<T extends string | Uint8Array = string> {
   processId: number;
-  onStdout: (callback: (line: string) => void) => void;
-  onStderr: (callback: (line: string) => void) => void;
+  onStdout: (callback: (line: T) => void) => void;
+  onStderr: (callback: (line: T) => void) => void;
   onExit: (
     callback: (status: Omit<ShellExitStatus, 'stdout' | 'stderr'>) => void,
   ) => void;
@@ -34,11 +34,23 @@ export interface ShellProcess {
   write: (data: string | Uint8Array) => void;
 }
 
-export interface ShellExitStatus {
+export interface ShellExitStatus<T extends string | Uint8Array = string> {
   exitCode: number;
-  stdout: string;
-  stderr: string;
+  stdout: T;
+  stderr: T;
 }
+
+export async function shellExec(
+  program: string,
+  args?: string | string[],
+  options?: ShellCommandOptions,
+): Promise<ShellExitStatus<string>>;
+
+export async function shellExec(
+  program: string,
+  args?: string | string[],
+  options?: ShellCommandOptions & { encoding: 'raw' },
+): Promise<ShellExitStatus<Uint8Array>>;
 
 /**
  * Executes a shell command and waits for completion
@@ -48,12 +60,12 @@ export interface ShellExitStatus {
  * @param {string | string[]} args - Arguments to pass to the program.
  * @param {Object} options - Spawn options (optional).
  */
-export async function shellExec(
+export async function shellExec<T extends string | Uint8Array = string>(
   program: string,
   args?: string | string[],
   options?: ShellCommandOptions,
-): Promise<ShellExitStatus> {
-  const output = await createCommand(program, args, options).execute();
+): Promise<ShellExitStatus<T>> {
+  const output = await createCommand<T>(program, args, options).execute();
 
   return {
     exitCode: output.code ?? 0,
@@ -61,6 +73,18 @@ export async function shellExec(
     stderr: output.stderr,
   };
 }
+
+export async function shellSpawn(
+  program: string,
+  args?: string | string[],
+  options?: ShellCommandOptions,
+): Promise<ShellProcess<string>>;
+
+export async function shellSpawn(
+  program: string,
+  args?: string | string[],
+  options?: ShellCommandOptions & { encoding: 'raw' },
+): Promise<ShellProcess<Uint8Array>>;
 
 /**
  * Starts a shell command without waiting for completion.
@@ -70,12 +94,12 @@ export async function shellExec(
  * @param {string | string[]} args - Arguments to pass to the program.
  * @param {Object} options - Spawn options (optional).
  */
-export async function shellSpawn(
+export async function shellSpawn<T extends string | Uint8Array = string>(
   program: string,
   args?: string | string[],
   options?: ShellCommandOptions,
-): Promise<ShellProcess> {
-  const command = createCommand(program, args, options);
+): Promise<ShellProcess<T>> {
+  const command = createCommand<T>(program, args, options);
   const process = await command.spawn();
 
   return {
@@ -94,12 +118,12 @@ export async function shellSpawn(
 /**
  * Creates a shell command via Tauri's shell plugin.
  */
-function createCommand(
+function createCommand<T extends string | Uint8Array = string>(
   program: string,
   args?: string | string[],
   options?: ShellCommandOptions,
-): Command<Uint8Array | string> {
-  return Command.create(program, args, {
+): Command<T> {
+  return (Command as any).create(program, args, {
     ...options,
     // Tauri's `SpawnOptions` type is not explicit about allowing `env` to
     // be `null`.
