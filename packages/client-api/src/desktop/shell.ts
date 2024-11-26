@@ -1,6 +1,6 @@
 import { Command } from '@tauri-apps/plugin-shell';
 
-export interface ShellCommandOptions {
+export interface ShellSpawnOptions {
   /**
    * Current working directory.
    */
@@ -17,16 +17,19 @@ export interface ShellCommandOptions {
   /**
    * Character encoding for stdout/stderr.
    *
-   * - `text` (default): stdout/stderr are returned as UTF-8 encoded strings.
+   * - `text` (default): stdout/stderr are returned as a UTF-8 encoded
+   * `string`.
    * - `raw`: stdout/stderr are returned as raw bytes (`Uint8Array`).
    */
   encoding?: 'text' | 'raw';
 }
 
-export interface ShellProcess<T extends string | Uint8Array = string> {
+export interface ShellProcess<
+  TOutput extends string | Uint8Array = string,
+> {
   processId: number;
-  onStdout: (callback: (line: T) => void) => void;
-  onStderr: (callback: (line: T) => void) => void;
+  onStdout: (callback: (line: TOutput) => void) => void;
+  onStderr: (callback: (line: TOutput) => void) => void;
   onExit: (
     callback: (status: Omit<ShellExitStatus, 'stdout' | 'stderr'>) => void,
   ) => void;
@@ -34,38 +37,35 @@ export interface ShellProcess<T extends string | Uint8Array = string> {
   write: (data: string | Uint8Array) => void;
 }
 
-export interface ShellExitStatus<T extends string | Uint8Array = string> {
+export interface ShellExitStatus<
+  TOutput extends string | Uint8Array = string,
+> {
   exitCode: number;
-  stdout: T;
-  stderr: T;
+  stdout: TOutput;
+  stderr: TOutput;
 }
 
-export async function shellExec(
-  program: string,
-  args?: string | string[],
-  options?: ShellCommandOptions,
-): Promise<ShellExitStatus<string>>;
-
-export async function shellExec(
-  program: string,
-  args?: string | string[],
-  options?: ShellCommandOptions & { encoding: 'raw' },
-): Promise<ShellExitStatus<Uint8Array>>;
-
 /**
- * Executes a shell command and waits for completion
+ * Executes a shell command and waits for completion.
  *
  * @param {string} command - Path to program executable, or program name
  * (if in $PATH).
  * @param {string | string[]} args - Arguments to pass to the program.
  * @param {Object} options - Spawn options (optional).
+ * @throws - If the command fails to execute.
  */
-export async function shellExec<T extends string | Uint8Array = string>(
+export async function shellExec<
+  TOutput extends string | Uint8Array = string,
+>(
   program: string,
   args?: string | string[],
-  options?: ShellCommandOptions,
-): Promise<ShellExitStatus<T>> {
-  const output = await createCommand<T>(program, args, options).execute();
+  options?: ShellSpawnOptions,
+): Promise<ShellExitStatus<TOutput>> {
+  const output = await createCommand<TOutput>(
+    program,
+    args,
+    options,
+  ).execute();
 
   return {
     exitCode: output.code ?? 0,
@@ -74,32 +74,24 @@ export async function shellExec<T extends string | Uint8Array = string>(
   };
 }
 
-export async function shellSpawn(
-  program: string,
-  args?: string | string[],
-  options?: ShellCommandOptions,
-): Promise<ShellProcess<string>>;
-
-export async function shellSpawn(
-  program: string,
-  args?: string | string[],
-  options?: ShellCommandOptions & { encoding: 'raw' },
-): Promise<ShellProcess<Uint8Array>>;
-
 /**
- * Starts a shell command without waiting for completion.
+ * Starts a shell command without waiting for completion. Allows for
+ * interaction with the spawned process, such as sending input and killing
+ * the process.
  *
  * @param {string} command - Path to program executable, or program name
  * (if in $PATH).
  * @param {string | string[]} args - Arguments to pass to the program.
  * @param {Object} options - Spawn options (optional).
  */
-export async function shellSpawn<T extends string | Uint8Array = string>(
+export async function shellSpawn<
+  TOutput extends string | Uint8Array = string,
+>(
   program: string,
   args?: string | string[],
-  options?: ShellCommandOptions,
-): Promise<ShellProcess<T>> {
-  const command = createCommand<T>(program, args, options);
+  options?: ShellSpawnOptions,
+): Promise<ShellProcess<TOutput>> {
+  const command = createCommand<TOutput>(program, args, options);
   const process = await command.spawn();
 
   return {
@@ -118,11 +110,11 @@ export async function shellSpawn<T extends string | Uint8Array = string>(
 /**
  * Creates a shell command via Tauri's shell plugin.
  */
-function createCommand<T extends string | Uint8Array = string>(
+function createCommand<TOutput extends string | Uint8Array = string>(
   program: string,
   args?: string | string[],
-  options?: ShellCommandOptions,
-): Command<T> {
+  options?: ShellSpawnOptions,
+): Command<TOutput> {
   return (Command as any).create(program, args, {
     ...options,
     // Tauri's `SpawnOptions` type is not explicit about allowing `env` to
