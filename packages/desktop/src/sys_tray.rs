@@ -325,6 +325,7 @@ impl SysTray {
         .title("Settings - Zebar")
         .focused(true)
         .inner_size(900., 600.)
+        .visible(true)
         .build()
         .context("Failed to build the settings window.")?;
 

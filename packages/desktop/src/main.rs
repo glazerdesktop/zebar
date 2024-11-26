@@ -12,6 +12,7 @@ use providers::ProviderEmission;
 use tauri::{
   async_runtime::block_on, AppHandle, Emitter, Manager, RunEvent,
 };
+use tauri_plugin_shell::ShellExt;
 use tokio::{sync::mpsc, task};
 use tracing::{error, info, level_filters::LevelFilter};
 use tracing_subscriber::EnvFilter;
@@ -173,6 +174,14 @@ async fn start_app(app: &mut tauri::App, cli: Cli) -> anyhow::Result<()> {
   app.handle().plugin(tauri_plugin_shell::init())?;
   app.handle().plugin(tauri_plugin_http::init())?;
   app.handle().plugin(tauri_plugin_dialog::init())?;
+
+  let shell = app.handle().shell();
+  shell
+    .command("echo")
+    .args(["Hello from Rust!"])
+    .output()
+    .await
+    .unwrap();
 
   // Initialize `ProviderManager` in Tauri state.
   let (manager, emit_rx) = ProviderManager::new(app.handle());

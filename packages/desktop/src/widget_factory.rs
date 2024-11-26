@@ -10,9 +10,10 @@ use std::{
 
 use anyhow::Context;
 use serde::Serialize;
+use serde_json::json;
 use tauri::{
-  AppHandle, Manager, PhysicalPosition, PhysicalSize, WebviewUrl,
-  WebviewWindowBuilder, WindowEvent,
+  self, ipc::CapabilityBuilder, AppHandle, Manager, PhysicalPosition,
+  PhysicalSize, WebviewUrl, WebviewWindowBuilder, WindowEvent,
 };
 use tokio::{
   sync::{broadcast, Mutex},
@@ -28,7 +29,7 @@ use crate::{
   common::PathExt,
   config::{
     AnchorPoint, Config, DockConfig, DockEdge, WidgetConfig,
-    WidgetPlacement,
+    WidgetPlacement, WidgetPrivileges,
   },
   monitor_state::{Monitor, MonitorState},
 };
@@ -50,8 +51,6 @@ pub struct WidgetFactory {
   pub open_tx: broadcast::Sender<WidgetState>,
 
   /// Reference to `MonitorState`.
-  ///
-  /// Used for widget positioning.
   monitor_state: Arc<MonitorState>,
 
   /// Running total of widgets created.
@@ -232,6 +231,10 @@ impl WidgetFactory {
 
       // Use running widget count as a unique label for the Tauri window.
       let widget_id = format!("widget-{}", new_count);
+
+      // Add additional capabilities (e.g. shell access) for the widget.
+      self
+        .add_widget_capabilities(&widget_id, &widget_config.privileges)?;
 
       let html_path = config_path
         .parent()
@@ -486,6 +489,54 @@ impl WidgetFactory {
         )
         .await?;
     }
+
+    Ok(())
+  }
+
+  /// Adds Tauri capabilities for a given widget ID (e.g. shell access).
+  fn add_widget_capabilities(
+    &self,
+    widget_id: &str,
+    privileges: &WidgetPrivileges,
+  ) -> anyhow::Result<()> {
+    let capability = CapabilityBuilder::new(widget_id)
+      .window(widget_id)
+      .remote("http://asset.localhost".to_string())
+      .remote("asset://localhost".to_string())
+      .permission_scoped(
+        "shell:allow-spawn",
+        privileges
+          .shell_commands
+          .iter()
+          .map(|shell| {
+            json!({
+              "name": shell.program,
+              "cmd": shell.program,
+              "args": [{ "validator": shell.args_regex }],
+              "sidecar": false
+            })
+          })
+          .collect::<Vec<serde_json::Value>>(),
+        vec![],
+      )
+      .permission_scoped(
+        "shell:allow-execute",
+        privileges
+          .shell_commands
+          .iter()
+          .map(|shell| {
+            json!({
+              "name": shell.program,
+              "cmd": shell.program,
+              "args": [{ "validator": shell.args_regex }],
+              "sidecar": false
+            })
+          })
+          .collect::<Vec<serde_json::Value>>(),
+        vec![],
+      );
+
+    self.app_handle.add_capability(capability)?;
 
     Ok(())
   }
