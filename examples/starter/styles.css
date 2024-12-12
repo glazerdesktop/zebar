@@ -16,6 +16,13 @@ body {
   overflow: hidden;
 }
 
+div,
+span,
+p {
+  cursor: default;
+  user-select: none;
+}
+
 html,
 body,
 #root {
