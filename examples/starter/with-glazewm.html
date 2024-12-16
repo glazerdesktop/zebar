@@ -145,6 +145,14 @@
             <div className="right">
               {output.glazewm && (
                 <>
+                  {output.glazewm.isPaused && (
+                    <button
+                      className="paused-button"
+                      onClick={() => glazewm.runCommand('wm-toggle-pause')}
+                    >
+                      PAUSED
+                    </button>
+                  )}
                   {output.glazewm.bindingModes.map(bindingMode => (
                     <button
                       className="binding-mode"

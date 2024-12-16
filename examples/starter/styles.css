@@ -53,6 +53,7 @@ body,
 .logo,
 .binding-mode,
 .tiling-direction,
+.paused-button,
 .network,
 .memory,
 .cpu,
@@ -85,7 +86,8 @@ body,
 }
 
 .binding-mode,
-.tiling-direction {
+.tiling-direction,
+.paused-button {
   background: rgb(255 255 255 / 15%);
   color: rgb(255 255 255 / 90%);
   border-radius: 2px;
