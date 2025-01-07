@@ -24,7 +24,7 @@ import { Widget, WidgetConfig } from 'zebar';
 import { WidgetConfigSidebar } from './WidgetConfigSidebar';
 import { WidgetConfigForm } from './WidgetConfigForm';
 
-export function WidgetConfigs() {
+export function WidgetPacks() {
   const params = useParams();
 
   const [configs, { mutate: mutateWidgetConfigs }] = createResource(

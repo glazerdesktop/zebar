@@ -4,35 +4,16 @@ import {
   ResizableHandle,
   ResizablePanel,
   Separator,
-  TabsContent,
-  TextField,
 } from '@glzr/components';
 import { createSignal } from 'solid-js';
 import { Nav } from './Nav';
 
 const Sidebar = () => {
   const [sizes, setSizes] = createSignal<number[]>([]);
-
   const [isCollapsed, setIsCollapsed] = createSignal(false);
 
   return (
     <>
-      <div class="md:hidden">
-        <img
-          src="/examples/mail-light.png"
-          width={1280}
-          height={1214}
-          alt="Mail"
-          class="block dark:hidden"
-        />
-        <img
-          src="/examples/mail-dark.png"
-          width={1280}
-          height={1214}
-          alt="Mail"
-          class="hidden dark:block"
-        />
-      </div>
       <div class="hidden md:block">
         <Resizable sizes={sizes()} onSizesChange={setSizes}>
           <ResizablePanel

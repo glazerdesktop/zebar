@@ -30,7 +30,6 @@ export const Nav = (props: Props) => {
               when={props.isCollapsed}
               fallback={
                 <a
-                  // biome-ignore lint/a11y/useValidAnchor: <explanation>
                   href="#"
                   class={cn(
                     buttonVariants({
