@@ -7,7 +7,7 @@ import {
 } from '@glzr/components';
 import { For, type JSX, Show } from 'solid-js';
 
-type Props = {
+export interface NavProps {
   isCollapsed: boolean;
   links: {
     title: string;
@@ -15,9 +15,9 @@ type Props = {
     icon: JSX.Element;
     variant: 'default' | 'ghost';
   }[];
-};
+}
 
-export const Nav = (props: Props) => {
+export function Nav(props: NavProps) {
   return (
     <div
       data-collapsed={props.isCollapsed}
@@ -90,4 +90,4 @@ export const Nav = (props: Props) => {
       </nav>
     </div>
   );
-};
+}
