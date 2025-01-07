@@ -1,10 +1,12 @@
 import { Button, cn, ResizablePanel, Separator } from '@glzr/components';
 import { createSignal } from 'solid-js';
-import { SidebarItem } from './SidebarItem';
 import { IconChevronsLeft, IconWorldSearch } from '@tabler/icons-solidjs';
+
+import { SidebarItem } from './SidebarItem';
 
 export interface SidebarProps {
   initialSize: number;
+  onCollapseClick: () => void;
 }
 
 export function Sidebar(props: SidebarProps) {
@@ -34,7 +36,7 @@ export function Sidebar(props: SidebarProps) {
         />
 
         <Button
-          onClick={() => setIsCollapsed(!isCollapsed())}
+          onClick={props.onCollapseClick}
           class={cn(
             'mr-2 p-2 text-muted-foreground',
             isCollapsed() && 'hidden',
