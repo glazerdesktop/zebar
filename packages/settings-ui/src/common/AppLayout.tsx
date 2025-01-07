@@ -11,14 +11,14 @@ export interface AppLayoutProps {
 }
 
 export function AppLayout(props: AppLayoutProps) {
-  const [sizes, setSizes] = createSignal<number[]>([]);
+  const [sizes, setSizes] = createSignal<number[]>([0.2, 0.8]);
 
   return (
     <>
       <Resizable sizes={sizes()} onSizesChange={setSizes}>
         <Sidebar />
         <ResizableHandle withHandle />
-        <ResizablePanel minSize={0.3}>{props.children}</ResizablePanel>
+        <ResizablePanel>{props.children}</ResizablePanel>
       </Resizable>
     </>
   );

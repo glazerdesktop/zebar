@@ -3,12 +3,10 @@ import { createSignal } from 'solid-js';
 import { Nav } from './Nav';
 
 export function Sidebar() {
-  const [sizes, setSizes] = createSignal<number[]>([]);
   const [isCollapsed, setIsCollapsed] = createSignal(false);
 
   return (
     <ResizablePanel
-      initialSize={sizes()[0] ?? 0.2}
       minSize={0.1}
       maxSize={0.2}
       collapsible
@@ -19,7 +17,11 @@ export function Sidebar() {
           'min-w-[50px] transition-all duration-300 ease-in-out',
       )}
     >
-      <Separator />
+      <img
+        src="/resources/logo-128x128.png"
+        alt="Zebar logo"
+        class="w-8 h-8 m-2"
+      />
       <Nav
         isCollapsed={isCollapsed()}
         links={[
