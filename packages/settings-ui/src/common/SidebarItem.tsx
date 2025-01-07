@@ -9,9 +9,9 @@ import { type JSX, Show } from 'solid-js';
 
 export interface SidebarItemProps {
   isCollapsed: boolean;
-  title: string;
-  label?: string;
   icon: JSX.Element;
+  tooltip: string;
+  children: JSX.Element;
   variant: 'default' | 'ghost';
 }
 
@@ -35,22 +35,11 @@ export function SidebarItem(props: SidebarItemProps) {
                 }),
                 props.variant === 'default' &&
                   'dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white',
-                'justify-start',
+                'justify-start min-w-0',
               )}
             >
               <div class="mr-2">{props.icon}</div>
-              {props.title}
-              {props.label && (
-                <span
-                  class={cn(
-                    'ml-auto',
-                    props.variant === 'default' &&
-                      'text-background dark:text-white',
-                  )}
-                >
-                  {props.label}
-                </span>
-              )}
+              <div class="truncate">{props.children}</div>
             </a>
           }
         >
@@ -69,15 +58,10 @@ export function SidebarItem(props: SidebarItemProps) {
               )}
             >
               {props.icon}
-              <span class="sr-only">{props.title}</span>
+              <span class="sr-only">{props.tooltip}</span>
             </TooltipTrigger>
             <TooltipContent class="flex items-center gap-4">
-              {props.title}
-              <Show when={props.label}>
-                <span class="ml-auto text-muted-foreground">
-                  {props.label}
-                </span>
-              </Show>
+              {props.tooltip}
             </TooltipContent>
           </Tooltip>
         </Show>

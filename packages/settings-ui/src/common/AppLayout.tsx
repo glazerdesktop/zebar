@@ -16,9 +16,11 @@ export function AppLayout(props: AppLayoutProps) {
   return (
     <>
       <Resizable sizes={sizes()} onSizesChange={setSizes}>
-        <Sidebar />
+        <Sidebar initialSize={sizes()[0]} />
         <ResizableHandle withHandle />
-        <ResizablePanel>{props.children}</ResizablePanel>
+        <ResizablePanel initialSize={sizes()[1]}>
+          {props.children}
+        </ResizablePanel>
       </Resizable>
     </>
   );

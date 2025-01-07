@@ -1,18 +1,20 @@
 import { Button, cn, ResizablePanel, Separator } from '@glzr/components';
 import { createSignal } from 'solid-js';
 import { SidebarItem } from './SidebarItem';
-import {
-  IconBuildingStore,
-  IconChevronsLeft,
-} from '@tabler/icons-solidjs';
+import { IconChevronsLeft, IconWorldSearch } from '@tabler/icons-solidjs';
 
-export function Sidebar() {
+export interface SidebarProps {
+  initialSize: number;
+}
+
+export function Sidebar(props: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = createSignal(false);
 
   return (
     <ResizablePanel
       minSize={0.1}
       maxSize={0.2}
+      initialSize={props.initialSize}
       collapsible
       onCollapse={size => setIsCollapsed(size === 0)}
       onExpand={() => setIsCollapsed(false)}
@@ -47,11 +49,24 @@ export function Sidebar() {
 
       <SidebarItem
         isCollapsed={isCollapsed()}
-        title="Community"
-        label="128"
-        icon={<IconBuildingStore class="size-6" />}
+        icon={<IconWorldSearch class="size-6" />}
+        tooltip="Browse Packs"
         variant="ghost"
-      />
+      >
+        Browse Packs
+      </SidebarItem>
+
+      {!isCollapsed() && (
+        <h3 class="px-4 text-xs font-medium text-muted-foreground">
+          Installed Packs
+        </h3>
+      )}
+
+      {!isCollapsed() && (
+        <h3 class="px-4 text-xs font-medium text-muted-foreground">
+          Local Packs
+        </h3>
+      )}
     </ResizablePanel>
   );
 }
