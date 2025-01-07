@@ -1,4 +1,4 @@
 export * from './desktop/UserWidgetPacksContext';
-export * from './AppLayout';
-export * from './Sidebar';
-export * from './SidebarItem';
+export * from './layout/AppLayout';
+export * from './layout/Sidebar';
+export * from './layout/SidebarItem';

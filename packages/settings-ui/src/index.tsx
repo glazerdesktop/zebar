@@ -3,8 +3,8 @@ import './index.css';
 import { HashRouter, Route } from '@solidjs/router';
 import { render } from 'solid-js/web';
 
-import { WidgetPacks } from './configs/WidgetPacks';
 import { AppLayout, UserWidgetPacksProvider } from './common';
+import { WidgetPacks } from './configs';
 
 render(
   () => (
