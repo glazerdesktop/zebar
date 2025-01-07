@@ -1,8 +1,14 @@
 import { Button, cn, ResizablePanel, Separator } from '@glzr/components';
-import { createSignal } from 'solid-js';
-import { IconChevronsLeft, IconWorldSearch } from '@tabler/icons-solidjs';
+import { createSignal, For } from 'solid-js';
+import {
+  IconChevronDown,
+  IconChevronsLeft,
+  IconPackage,
+  IconWorldSearch,
+} from '@tabler/icons-solidjs';
 
 import { SidebarItem } from './SidebarItem';
+import { useWidgetPacks } from '../desktop/UserWidgetPacksContext';
 
 export interface SidebarProps {
   initialSize: number;
@@ -11,6 +17,8 @@ export interface SidebarProps {
 
 export function Sidebar(props: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = createSignal(false);
+
+  const { installedPacks, localPacks } = useWidgetPacks();
 
   return (
     <ResizablePanel
@@ -52,23 +60,55 @@ export function Sidebar(props: SidebarProps) {
       <SidebarItem
         isCollapsed={isCollapsed()}
         icon={<IconWorldSearch class="size-6" />}
-        tooltip="Browse Packs"
+        tooltip="Browse Community"
         variant="ghost"
       >
-        Browse Packs
+        <div class="truncate">Browse Community</div>
       </SidebarItem>
 
       {!isCollapsed() && (
-        <h3 class="px-4 text-xs font-medium text-muted-foreground">
-          Installed Packs
+        <h3 class="px-4 text-xs font-medium text-muted-foreground truncate">
+          Community Packs
         </h3>
       )}
 
+      <For each={installedPacks()}>
+        {pack => (
+          <SidebarItem
+            isCollapsed={isCollapsed()}
+            tooltip={pack.name}
+            icon={<IconPackage class="size-6" />}
+            variant="ghost"
+          >
+            <div class="flex items-center gap-2 w-full overflow-hidden">
+              <div class="truncate">{pack.name}</div>
+              <IconChevronDown class="size-4 flex-none ml-auto" />
+            </div>
+          </SidebarItem>
+        )}
+      </For>
+
       {!isCollapsed() && (
-        <h3 class="px-4 text-xs font-medium text-muted-foreground">
+        <h3 class="px-4 text-xs font-medium text-muted-foreground truncate">
           Local Packs
         </h3>
       )}
+
+      <For each={localPacks()}>
+        {pack => (
+          <SidebarItem
+            isCollapsed={isCollapsed()}
+            icon={<IconPackage class="size-6" />}
+            tooltip={pack.name}
+            variant="ghost"
+          >
+            <div class="flex items-center gap-2 w-full overflow-hidden">
+              <div class="truncate">{pack.name}</div>
+              <IconChevronDown class="size-4 flex-none ml-auto" />
+            </div>
+          </SidebarItem>
+        )}
+      </For>
     </ResizablePanel>
   );
 }

@@ -9,8 +9,8 @@ import { type JSX, Show } from 'solid-js';
 
 export interface SidebarItemProps {
   isCollapsed: boolean;
-  icon: JSX.Element;
-  tooltip: string;
+  icon?: JSX.Element;
+  tooltip?: string;
   children: JSX.Element;
   variant: 'default' | 'ghost';
 }
@@ -38,32 +38,37 @@ export function SidebarItem(props: SidebarItemProps) {
                 'justify-start min-w-0',
               )}
             >
-              <div class="mr-2">{props.icon}</div>
-              <div class="truncate">{props.children}</div>
+              <Show when={props.icon}>
+                <div class="mr-2">{props.icon}</div>
+              </Show>
+
+              {props.children}
             </a>
           }
         >
-          <Tooltip openDelay={0} closeDelay={0} placement="right">
-            <TooltipTrigger
-              as="a"
-              href="#"
-              class={cn(
-                buttonVariants({
-                  variant: props.variant,
-                  size: 'icon',
-                }),
-                'h-9 w-9',
-                props.variant === 'default' &&
-                  'dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white',
-              )}
-            >
-              {props.icon}
-              <span class="sr-only">{props.tooltip}</span>
-            </TooltipTrigger>
-            <TooltipContent class="flex items-center gap-4">
-              {props.tooltip}
-            </TooltipContent>
-          </Tooltip>
+          <Show when={props.tooltip}>
+            <Tooltip openDelay={0} closeDelay={0} placement="right">
+              <TooltipTrigger
+                as="a"
+                href="#"
+                class={cn(
+                  buttonVariants({
+                    variant: props.variant,
+                    size: 'icon',
+                  }),
+                  'h-9 w-9',
+                  props.variant === 'default' &&
+                    'dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white',
+                )}
+              >
+                {props.icon}
+                <span class="sr-only">{props.tooltip}</span>
+              </TooltipTrigger>
+              <TooltipContent class="flex items-center gap-4">
+                {props.tooltip}
+              </TooltipContent>
+            </Tooltip>
+          </Show>
         </Show>
       </nav>
     </div>

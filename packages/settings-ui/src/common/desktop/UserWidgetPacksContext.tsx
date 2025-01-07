@@ -4,7 +4,53 @@ import { listen, type Event } from '@tauri-apps/api/event';
 import { createResource } from 'solid-js';
 import type { Widget, WidgetConfig } from 'zebar';
 
+const installedPacksMock = [
+  {
+    id: 'system-monitor',
+    name: 'System Monitor',
+    author: 'Zebar Team',
+    description: 'CPU, memory, and disk usage widgets',
+    version: '1.0.0',
+    widgets: [
+      { id: 'cpu-usage', name: 'CPU Usage' },
+      { id: 'memory-usage', name: 'Memory Usage' },
+      { id: 'disk-space', name: 'Disk Space' },
+    ],
+  },
+  {
+    id: 'weather-widgets',
+    name: 'Weather Pack',
+    author: 'Weather Team',
+    description: 'Current weather and forecast widgets',
+    version: '2.1.0',
+    widgets: [
+      { id: 'current-weather', name: 'Current Weather' },
+      { id: 'forecast', name: 'Weekly Forecast' },
+    ],
+  },
+];
+
+const localPacksMock = [
+  {
+    id: 'my-custom-widgets',
+    name: 'My Custom Widgets',
+    description: 'Personal collection of widgets',
+    version: '0.1.0',
+    widgets: [{ id: 'todo-list', name: 'Todo List' }],
+  },
+];
+
+type WidgetPack = {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  widgets: { id: string; name: string }[];
+};
+
 type UserWidgetPacksContextState = {
+  installedPacks: Resource<WidgetPack[]>;
+  localPacks: Resource<WidgetPack[]>;
   widgetConfigs: Resource<Record<string, WidgetConfig>>;
   widgetStates: Resource<Record<string, Widget>>;
   updateWidgetConfig: (
@@ -18,6 +64,12 @@ const UserWidgetPacksContext =
   createContext<UserWidgetPacksContextState>();
 
 export function UserWidgetPacksProvider(props: { children: JSX.Element }) {
+  // TODO: Fetch installed packs from the backend.
+  const [installedPacks] = createResource(async () => installedPacksMock);
+
+  // TODO: Fetch local packs from the backend.
+  const [localPacks] = createResource(async () => localPacksMock);
+
   const [widgetConfigs, { mutate: mutateWidgetConfigs }] = createResource(
     async () => invoke<Record<string, WidgetConfig>>('widget_configs'),
     { initialValue: {} },
@@ -86,6 +138,8 @@ export function UserWidgetPacksProvider(props: { children: JSX.Element }) {
   }
 
   const store: UserWidgetPacksContextState = {
+    installedPacks,
+    localPacks,
     widgetConfigs,
     widgetStates,
     updateWidgetConfig,
