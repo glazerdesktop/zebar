@@ -8,34 +8,24 @@ import {
 } from '@glzr/components';
 import { useParams } from '@solidjs/router';
 import { IconChevronDown } from '@tabler/icons-solidjs';
-import { invoke } from '@tauri-apps/api/core';
-import { listen, type Event } from '@tauri-apps/api/event';
 import {
   createEffect,
   createMemo,
-  createResource,
   createSignal,
   For,
   on,
   Show,
 } from 'solid-js';
-import { Widget, WidgetConfig } from 'zebar';
 
 import { WidgetConfigSidebar } from './WidgetConfigSidebar';
 import { WidgetConfigForm } from './WidgetConfigForm';
+import { useWidgetPacks } from '~/common';
 
 export function WidgetPacks() {
   const params = useParams();
 
-  const [configs, { mutate: mutateWidgetConfigs }] = createResource(
-    async () => invoke<Record<string, WidgetConfig>>('widget_configs'),
-    { initialValue: {} },
-  );
-
-  const [widgetStates, { mutate: mutateWidgetStates }] = createResource(
-    async () => invoke<Record<string, Widget>>('widget_states'),
-    { initialValue: {} },
-  );
+  const { widgetConfigs, widgetStates, updateWidgetConfig, togglePreset } =
+    useWidgetPacks();
 
   const [selectedConfigPath, setSelectedConfigPath] = createSignal<
     string | null
@@ -45,7 +35,9 @@ export function WidgetPacks() {
     null,
   );
 
-  const selectedConfig = createMemo(() => configs()[selectedConfigPath()]);
+  const selectedConfig = createMemo(
+    () => widgetConfigs()[selectedConfigPath()],
+  );
 
   const presetNames = createMemo(() =>
     (selectedConfig()?.presets ?? []).map(preset => preset.name),
@@ -68,23 +60,6 @@ export function WidgetPacks() {
     );
   });
 
-  // Update widget states on open.
-  listen('widget-opened', (event: Event<any>) => {
-    mutateWidgetStates(states => ({
-      ...states,
-      [event.payload.id]: event.payload,
-    }));
-  });
-
-  // Update widget states on close.
-  listen('widget-closed', (event: Event<any>) => {
-    mutateWidgetStates(states => {
-      const newStates = { ...states };
-      delete newStates[event.payload];
-      return newStates;
-    });
-  });
-
   // Update selected config path when params change. This occurs when
   // "Edit" is selected from the system tray menu.
   createEffect(
@@ -99,10 +74,12 @@ export function WidgetPacks() {
   // Select the first config alphabetically on initial load.
   createEffect(
     on(
-      () => configs(),
+      () => widgetConfigs(),
       () => {
         if (!selectedConfigPath()) {
-          setSelectedConfigPath(Object.keys(configs()).sort()[0] ?? null);
+          setSelectedConfigPath(
+            Object.keys(widgetConfigs()).sort()[0] ?? null,
+          );
         }
       },
     ),
@@ -136,42 +113,11 @@ export function WidgetPacks() {
     ),
   );
 
-  async function onConfigChange(
-    configPath: string,
-    newConfig: WidgetConfig,
-  ) {
-    // Update the state with the new config values.
-    mutateWidgetConfigs(configs => ({
-      ...configs,
-      [configPath]: newConfig,
-    }));
-
-    // Send updated config values to backend.
-    await invoke<void>('update_widget_config', {
-      configPath,
-      newConfig,
-    });
-  }
-
-  async function togglePreset(configPath: string, presetName: string) {
-    if (selectedPresetStates().length > 0) {
-      await invoke<void>('stop_preset', {
-        configPath,
-        presetName,
-      });
-    } else {
-      await invoke<void>('start_preset', {
-        configPath,
-        presetName,
-      });
-    }
-  }
-
   return (
     <div class="flex h-screen bg-background">
       {/* Sidebar. */}
       <WidgetConfigSidebar
-        configs={configs()}
+        configs={widgetConfigs()}
         widgetStates={widgetStates()}
         selectedConfig={selectedConfig()}
         selectedConfigPath={selectedConfigPath()}
@@ -198,7 +144,7 @@ export function WidgetPacks() {
                 config={config()}
                 configPath={selectedConfigPath()}
                 onChange={config =>
-                  onConfigChange(selectedConfigPath(), config)
+                  updateWidgetConfig(selectedConfigPath(), config)
                 }
               />
             </div>
