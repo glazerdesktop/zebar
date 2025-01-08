@@ -9,8 +9,8 @@ import { type JSX, Show } from 'solid-js';
 
 export interface SidebarItemProps {
   isCollapsed: boolean;
-  icon?: JSX.Element;
-  tooltip?: string;
+  icon: JSX.Element;
+  tooltip: string;
   children: JSX.Element;
   variant: 'default' | 'ghost';
 }
@@ -29,7 +29,7 @@ export function SidebarItem(props: SidebarItemProps) {
         'flex justify-start min-w-0 m-2 pl-2',
       )}
     >
-      {props.icon && <div class="mr-2">{props.icon}</div>}
+      <div class="mr-2">{props.icon}</div>
       {props.children}
     </a>
   );

@@ -29,6 +29,7 @@ export function Sidebar(props: SidebarProps) {
       onCollapse={size => setIsCollapsed(size === 0)}
       onExpand={() => setIsCollapsed(false)}
       class={cn(
+        'overflow-hidden',
         isCollapsed() &&
           'min-w-[50px] transition-all duration-300 ease-in-out',
       )}
